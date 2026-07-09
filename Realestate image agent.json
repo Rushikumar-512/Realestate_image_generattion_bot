@@ -1,0 +1,290 @@
+{
+  "name": "Realestate image agent",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -272,
+        48
+      ],
+      "id": "c6844e54-a525-4913-a6f4-7a9db7f90185",
+      "name": "Telegram Trigger",
+      "webhookId": "c76f4239-abfe-4589-888c-c23e8eb2cee2",
+      "credentials": {
+        "telegramApi": {
+          "id": "2U59a9PV8YgG9rMY",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.photo[0].file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        48
+      ],
+      "id": "138e059b-2183-49c4-ae1c-e7d24bc14a7d",
+      "name": "Get a file",
+      "webhookId": "b5d2cc14-c3a7-48fe-9397-689bc56a2068",
+      "credentials": {
+        "telegramApi": {
+          "id": "2U59a9PV8YgG9rMY",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Analyze the attached property image and create the image-editing prompt.",
+        "options": {
+          "systemMessage": "You are a professional real-estate photo analysis and retouching instruction agent.\n\nYour task is to analyze the uploaded property photograph and create a precise image-editing prompt for an AI image-editing model.\n\nCRITICAL OBJECTIVE:\n\nThe output image must remain the SAME PROPERTY and the SAME PHOTOGRAPH.\n\nThe AI image-editing model must NOT redesign, regenerate, reinterpret, remodel, renovate, stage, or recreate the property.\n\nAnalyze the uploaded image and identify only photographic quality problems that can be improved, such as:\n\n- Poor brightness\n- Underexposure or overexposure\n- Incorrect white balance\n- Dull or unnatural colors\n- Low contrast\n- Lack of clarity\n- Lack of sharpness\n- Excessive shadows\n- Excessive highlights\n- Noise or minor photographic imperfections\n\nCreate a conservative photo-retouching prompt based specifically on the uploaded image.\n\nThe generated editing prompt must begin with:\n\n\"STRICT IMAGE-TO-IMAGE PHOTO RETOUCHING. Preserve the exact original photograph.\"\n\nThe prompt must clearly instruct the image-editing model to:\n\n- Preserve the exact architecture.\n- Preserve the exact room geometry.\n- Preserve the exact spatial layout.\n- Preserve the exact camera position.\n- Preserve the exact camera angle.\n- Preserve the exact perspective.\n- Preserve the exact image composition.\n- Preserve the exact aspect ratio.\n- Preserve every wall.\n- Preserve every window.\n- Preserve every door.\n- Preserve the exact ceiling.\n- Preserve the exact flooring.\n- Preserve all permanent property features.\n- Preserve the location, size, shape, and number of all architectural elements.\n\nONLY make subtle photographic improvements when necessary:\n\n- Correct exposure.\n- Improve brightness naturally.\n- Recover excessive highlights.\n- Improve shadow detail.\n- Correct white balance.\n- Improve natural color balance.\n- Add subtle clarity.\n- Add subtle sharpness.\n- Reduce photographic noise.\n\nABSOLUTELY FORBIDDEN:\n\n- Do not generate a new room.\n- Do not recreate the photograph.\n- Do not redesign the property.\n- Do not change the architectural style.\n- Do not add or remove windows.\n- Do not add or remove doors.\n- Do not change the ceiling height.\n- Do not change room dimensions.\n- Do not change the flooring.\n- Do not change the outdoor view.\n- Do not add furniture.\n- Do not remove furniture.\n- Do not add decorations.\n- Do not add landscaping.\n- Do not change the camera angle.\n- Do not change the perspective.\n- Do not crop the image.\n- Do not change the aspect ratio.\n- Do not perform virtual staging.\n- Do not make creative modifications.\n\nThe final result must look like the original photograph professionally retouched by a real-estate photographer, NOT like an AI-generated replacement image.\n\nGenerate the editing instructions specifically according to the actual problems visible in the uploaded photograph.\n\nReturn ONLY the final image-editing prompt.\n\nDo not return analysis, explanations, headings, markdown, quotation marks, or additional text.",
+          "passthroughBinaryImages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        176,
+        48
+      ],
+      "id": "b00dc7a8-27e9-40ef-a306-911eef038847",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        304
+      ],
+      "id": "6a3e49f8-3cb7-457a-916e-ceb259580954",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YYHKimf5W9FjkvjZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudflare.com/client/v4/accounts/55cc4938f1554c30f586070cf6bdb880/ai/run/@cf/black-forest-labs/flux-2-klein-4b",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer <your image generation mode api> "
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.output }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "data",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        752,
+        48
+      ],
+      "id": "18213558-67e3-4b23-8ab9-c722cb1c5844",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        528,
+        48
+      ],
+      "id": "bedcf296-6c6c-4053-91b1-81f2a8665f68",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        48
+      ],
+      "id": "15caddca-dcb8-4361-85fd-8d453d59d38f",
+      "name": "Send a photo message",
+      "webhookId": "1e7ef0a9-58ea-47d7-9fa4-5db3d9ff100b",
+      "credentials": {
+        "telegramApi": {
+          "id": "2U59a9PV8YgG9rMY",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "result.image",
+        "options": {
+          "fileName": "enhanced_property_image"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        976,
+        48
+      ],
+      "id": "6bb02b2a-24aa-4ab2-a543-8667c964a023",
+      "name": "Convert to File"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a photo message": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "162f0a7a-0edd-44dd-bc90-0a646abb8862",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3dd650ace53a0232387514b4e0fe08971e0cf9be78d23c677735afd1b7d830fd"
+  },
+  "nodeGroups": [],
+  "id": "X04kNiVNdOru5YaR",
+  "tags": []
+}
